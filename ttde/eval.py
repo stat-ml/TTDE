@@ -1,4 +1,5 @@
 import click
+import jax
 
 from ttde.all_imports import *
 from ttde.score.all_imports import *
@@ -13,13 +14,15 @@ from jax.config import config
 config.update("jax_enable_x64", True)
 
 
+def log_p(x, model, params):
+    return model.apply(params, x, method=model.log_p)
+
+
+def eval_dataset_new(dataset, batch_sz, model, params):
+    return batched_vmap(lambda x: log_p(x, model, params), batch_sz)(dataset)
+
+
 @click.command()
-#@click.option(
-#    '--dataset',
-#    type=click.Choice(NAME_TO_DATASET.keys(), case_sensitive=False),
-#    required=True,
-#    help=f'Name of the dataset. Choose one of {", ".join(NAME_TO_DATASET.keys())}'
-#)
 @click.option('--q', type=int, required=True, help='degree of splines')
 @click.option('--m', type=int, required=True, help='number of basis functions')
 @click.option('--rank', type=int, required=True, help='rank of tensor-train decomposition')
@@ -30,9 +33,9 @@ config.update("jax_enable_x64", True)
 @click.option('--train-noise', type=float, required=True, help='Gaussian noise to add to samples during training')
 @click.option('--lr', type=float, required=True, help='learning rate for Adam optimizer')
 @click.option('--train-steps', type=int, required=True, help='number of train steps')
-#@click.option('--data-dir', type=Path, required=True, help='directory with MAF datasets')
 @click.option('--train_path', type=Path, required=True, help='Path to train embeddings')
-@click.option('--test_path', type=Path, required=True, help='Path to test embeddings')
+@click.option('--id_test_path', type=Path, required=True, help='Path to id test embeddings')
+@click.option('--ood_test_path', type=Path, required=True, help='Path to ood test embeddings')
 @click.option('--work-dir', type=Path, required=True, help='directory where to store checkpoints and tensorboard plots')
 
 
@@ -49,13 +52,12 @@ def main(
     lr: float,
     train_steps: int,
     train_path: str,
-    test_path: str,
+    id_test_path: str,
+    ood_test_path: str,
     work_dir: Path,
 ):
-    # DATASET = NAME_TO_DATASET[dataset](data_dir)
-
-    data_train, data_val, data_test = data_setups.load_resnet_embeddings(train_path, test_path)
-    print(data_train.X.shape, data_val.X.shape)
+    data_train, data_val, data_test_id = data_setups.load_resnet_embeddings(train_path, id_test_path)
+    _, _, data_test_ood = data_setups.load_resnet_embeddings(train_path, ood_test_path)
 
     MODEL = model_setups.PAsTTSqrOpt(q=q, m=m, rank=rank, n_comps=n_comps)
 
@@ -65,7 +67,6 @@ def main(
     WORK_DIR = Path(work_dir / f'logits/{MODEL}/{INIT}/{TRAINER}')
 
     model = MODEL.create(KEY_0, data_train.X)
-#    init_params = INIT(model, KEY_0, data_train.X)
     init_params = model.init(KEY_0)
 
     optimizer = riemannian_optimizer.FlaxWrapper.create(flax.optim.Adam(learning_rate=TRAINER.lr), target=init_params)
@@ -82,36 +83,20 @@ def main(
         work_dir=utils.suffix_with_date(WORK_DIR),
     )
 
-    test_iter = data_test.test_iterator(batch_sz=batch_sz)
+    test_iter_id = data_test_id.test_iterator(batch_sz=batch_sz)
+    test_iter_ood = data_test_ood.test_iterator(batch_sz=batch_sz)
 
-#    trainer.fit(KEY_0, train_steps)
     from ttde.score.trainer import load_checkpoint
     from flax import serialization
 
     params = load_checkpoint('resnet_checkpoint')
     params = serialization.from_state_dict(init_params, params['target'])
 
-    def log_p(x):
-        return model.apply(params, x, method=model.log_p)
+    id_ues = eval_dataset_new(data_test_id.X, batch_sz, model, params)
+    ood_ues = eval_dataset_new(data_test_ood.X, batch_sz, model, params)
 
-    ues = []
-    i = 1
-    while True:
-        try:
-            print('Batch #', i)
-            i += 1
-            data = next(test_iter)
-            log_ps = batched_vmap(log_p, batch_sz)(data)
-            ues.append(log_ps)
-        except StopIteration:
-            break
-
-    ues = np.concatenate(ues)
-
-    try:
-        np.save('/home/vashurin/data/ttde/log_likelihoods/resnet_18_svhn_ood.npy', ues)
-    except:
-        breakpoint()
+    np.save('/home/vashurin/data/ttde/log_likelihoods/resnet_18_cifar_10_test_ttde.npy', id_ues)
+    np.save('/home/vashurin/data/ttde/log_likelihoods/resnet_18_svhn_ood_ttde.npy', ood_ues)
 
 if __name__ == '__main__':
     main()

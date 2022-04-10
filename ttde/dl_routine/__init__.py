@@ -22,6 +22,20 @@ class TensorDatasetX:
             inds = jax.random.randint(curr_key, [batch_sz], 0, len(self.X))
             yield self.X[inds]
 
+    def test_iterator(self, batch_sz: int) -> Generator[jnp.ndarray, None, None]:
+        n_full_batches = len(self.X) // batch_sz
+        i = 0
+        while i < n_full_batches:
+            i += 1
+            lower_ind = batch_sz * i
+
+            if i == n_full_batches:
+                upper_ind = -1
+            else:
+                upper_ind = batch_sz * (i + 1)
+
+            yield self.X[lower_ind:upper_ind]
+
     def reshape(self, *shape) -> 'TensorDatasetX':
         return TensorDatasetX(self.X.reshape(self.X.shape[0], *shape))
 

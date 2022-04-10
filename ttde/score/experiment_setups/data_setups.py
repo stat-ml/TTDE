@@ -6,6 +6,7 @@ from ttde.datasets.gas import load_gas_dataset
 from ttde.datasets.hepmass import load_hepmass_dataset
 from ttde.datasets.miniboone import load_miniboone_dataset
 from ttde.datasets.power import load_power_dataset
+from ttde.datasets.resnet_embeddings import load_resnet_embeddings_dataset
 
 from ttde.score.experiment_setups.base import Base
 
@@ -56,3 +57,6 @@ def load_dataset(dataset):
         return load_bsds300_dataset(dataset.path)
     else:
         assert False, f'Unknown dataset {dataset}'
+
+def load_resnet_embeddings(train_path, test_path):
+    return load_resnet_embeddings_dataset(train_path, test_path)
