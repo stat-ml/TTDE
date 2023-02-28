@@ -1,6 +1,6 @@
 Code for reproducing experiments from this paper:
 >Novikov, Georgii S., Maxim E. Panov, and Ivan V. Oseledets. "Tensor-train density estimation." Uncertainty in artificial intelligence. PMLR, 2021. 
->[paper](https://proceedings.mlr.press/v161/novikov21a.html.)
+>[paper](https://proceedings.mlr.press/v161/novikov21a.html)
 
 If you use our code in your research, please cite our paper:
 ```
