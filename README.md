@@ -27,7 +27,7 @@ If you use our code in your research, please cite our paper:
 # Table of Contents
 
 - [Tensor-Train Density Estimation](#tensor-train-density-estimation)
-  - [Tensor-Train compression of linear model](#tensor-train-compression-of-linear-model)
+  - [Tensor-Train compression of the linear model](#tensor-train-compression-of-the-linear-model)
   - [Density Estimation](#density-estimation)
   - [Choice of Basis Functions](#choice-of-basis-functions)
   - [Results](#results)
