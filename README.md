@@ -140,7 +140,7 @@ If you use our code in your research, please cite our paper:
 ## Pip
 Run the following command to install TTDE package from github:
 ```
-pip install git+https://github.com/PgLoLo/TTDE
+pip install git+https://github.com/stat-ml/TTDE
 ```
 or in edit mode (run from project root where `pyproject.toml` s located):
 ```
