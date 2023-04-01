@@ -228,6 +228,6 @@ miniboone:
 bsds300:
 	python -m ttde.train --dataset bsds300 --q 2 --m 256 --rank 16 --n-comps 32 --em-steps 10 --noise 0.01 --batch-sz 512 --train-noise 0.01 --lr 0.001 --train-steps 100000 --data-dir ~/from-MAF-paper --work-dir ~/workdir
 ```
-After the training is over, the results can be viewed via [wandb](https://wandb.ai/site] service)
+After the training is over, the results can be viewed via [wandb](https://wandb.ai/site) service
 
 In all examples, replace the path `~/from-MAF-paper` with the one where you put the dataset data, and replace `~/workdir/` with the folder where you want the results to be placed in.
