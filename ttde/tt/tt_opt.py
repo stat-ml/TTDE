@@ -35,9 +35,7 @@ class TTOpt:
         first = vectors[:, 0, :, None].T
 
         inner = jnp.zeros([vectors.shape[1] - 2, vectors.shape[0], vectors.shape[2], vectors.shape[0]])
-        inner = ops.index_update(
-            inner, ops.index[:, jnp.arange(vectors.shape[0]), :, jnp.arange(vectors.shape[0])], vectors[:, 1:-1, :]
-        )
+        inner = inner.at[:, jnp.arange(vectors.shape[0]), :, jnp.arange(vectors.shape[0])].set(vectors[:, 1:-1, :])
 
         last = vectors[:, -1, :, None]
 

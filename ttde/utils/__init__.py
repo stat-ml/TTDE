@@ -8,7 +8,7 @@ from typing import Union
 import jax
 from opt_einsum import contract_expression
 from jax import numpy as jnp
-from jax.lib import pytree
+from jax.tree_util import tree_flatten
 
 
 def suffix_with_date(folder: Path) -> Path:
@@ -40,7 +40,7 @@ def tree_stack(trees):
     leaves_list = []
     treedef_list = []
     for tree in trees:
-        leaves, treedef = pytree.flatten(tree)
+        leaves, treedef = tree_flatten(tree)
         leaves_list.append(leaves)
         treedef_list.append(treedef)
 

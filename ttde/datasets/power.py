@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from ttde.dl_routine import TensorDatasetX
 
@@ -27,15 +26,6 @@ class _POWER:
         self.tst = self.Data(tst)
 
         self.n_dims = self.trn.x.shape[1]
-
-    def show_histograms(self, split):
-
-        data_split = getattr(self, split, None)
-        if data_split is None:
-            raise ValueError('Invalid data split')
-
-        # util.plot_hist_marginals(data_split.x)
-        plt.show()
 
 
 def _load_data(root):

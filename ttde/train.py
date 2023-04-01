@@ -1,4 +1,5 @@
 import click
+import optax
 
 from ttde.all_imports import *
 from ttde.score.all_imports import *
@@ -29,7 +30,7 @@ config.update("jax_enable_x64", True)
 @click.option('--lr', type=float, required=True, help='learning rate for Adam optimizer')
 @click.option('--train-steps', type=int, required=True, help='number of train steps')
 @click.option('--data-dir', type=Path, required=True, help='directory with MAF datasets')
-@click.option('--work-dir', type=Path, required=True, help='directory where to store checkpoints and tensorboard plots')
+@click.option('--work-dir', type=Path, required=True, help='directory where to store checkpoints')
 def main(
     dataset: str,
     q: int,
@@ -59,7 +60,7 @@ def main(
     model = MODEL.create(KEY_0, data_train.X)
     init_params = INIT(model, KEY_0, data_train.X)
 
-    optimizer = riemannian_optimizer.FlaxWrapper.create(flax.optim.Adam(learning_rate=TRAINER.lr), target=init_params)
+    optimizer = riemannian_optimizer.FlaxWrapper.create(optax.adam(learning_rate=TRAINER.lr), target=init_params)
 
     trainer = Trainer(
         model=model,

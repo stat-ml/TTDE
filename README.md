@@ -137,12 +137,19 @@ If you use our code in your research, please cite our paper:
 
 # Installation
 
-All requirements can be installed via [poetry](https://github.com/python-poetry/poetry):
+## Pip
+Run the following command to install TTDE package from github:
 ```
-pip install poetry
-poetry install git+https://github.com/stat-ml/TTDE
+pip install git+https://github.com/PgLoLo/TTDE
 ```
-WARNING: The `jax` library with poetry is installed without GPU support. We recommend that you install the correct version of `jax` separately after installing packages with `poetry`, following the recommendations from [repository](https://github.com/google/jax).
+or in edit mode (run from project root where `pyproject.toml` s located):
+```
+print instal -e .
+```
+It will install cpu-only version of [jax](https://github.com/google/jax), thus then install appropriate cuda-version of [jax](https://github.com/google/jax) library. For the time being cuda-11 version of [jax](https://github.com/google/jax) can be installed as followes:
+```
+pip install "jax[cuda11_cudnn82]==0.4.8" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+```
 
 
 # How To Run
@@ -204,8 +211,7 @@ Options:
   --lr FLOAT                      learning rate for Adam optimizer  [required]
   --train-steps INTEGER           number of train steps  [required]
   --data-dir PATH                 directory with MAF datasets  [required]
-  --work-dir PATH                 directory where to store checkpoints and
-                                  tensorboard plots  [required]
+  --work-dir PATH                 directory where to store checkpoints [required]
   --help                          Show this message and exit.
 ```
 
@@ -222,9 +228,6 @@ miniboone:
 bsds300:
 	python -m ttde.train --dataset bsds300 --q 2 --m 256 --rank 16 --n-comps 32 --em-steps 10 --noise 0.01 --batch-sz 512 --train-noise 0.01 --lr 0.001 --train-steps 100000 --data-dir ~/from-MAF-paper --work-dir ~/workdir
 ```
-After the training is over, the results can be viewed using the `tensorboard`:
-```
-tensorboard --logdir ~/workdir
-```
+After the training is over, the results can be viewed via [wandb](https://wandb.ai/site) service
 
 In all examples, replace the path `~/from-MAF-paper` with the one where you put the dataset data, and replace `~/workdir/` with the folder where you want the results to be placed in.

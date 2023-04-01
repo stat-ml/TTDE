@@ -1,5 +1,5 @@
-from jax import numpy as jnp, ops
+from jax import numpy as jnp
 
 
 def fuse_canonical_probs_and_alphas(probs: jnp.ndarray, alphas: jnp.ndarray):
-    return ops.index_update(probs, ops.index[:, 0], probs[:, 0] * alphas[:, None])
+    return probs.at[:, 0].multiply(alphas[:, None])
