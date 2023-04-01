@@ -149,6 +149,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "jax"
+version = "0.4.8"
+extras = ["cuda11"]
+requires_python = ">=3.8"
+summary = "Differentiate, compile, and transform Numpy code."
+dependencies = [
+    "jax==0.4.8",
+]
+
+[[package]]
 name = "jaxlib"
 version = "0.4.7"
 requires_python = ">=3.8"
@@ -432,7 +442,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:49e210456145dd92a46cd3947855393afb0e3c650a238552a3aa7becdbfc426a"
+content_hash = "sha256:a6fbeb2cb9fd6411f3cd0ab017e5d748f479e42b6cfd979c7515ba2d3ac6aff8"
 
 [metadata.files]
 "absl-py 1.4.0" = [
