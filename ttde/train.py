@@ -30,7 +30,7 @@ config.update("jax_enable_x64", True)
 @click.option('--lr', type=float, required=True, help='learning rate for Adam optimizer')
 @click.option('--train-steps', type=int, required=True, help='number of train steps')
 @click.option('--data-dir', type=Path, required=True, help='directory with MAF datasets')
-@click.option('--work-dir', type=Path, required=True, help='directory where to store checkpoints and tensorboard plots')
+@click.option('--work-dir', type=Path, required=True, help='directory where to store checkpoints')
 def main(
     dataset: str,
     q: int,
