@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from tensorboardX import SummaryWriter
-
 from ttde.utils import PathType
 
 
@@ -20,7 +18,6 @@ class TrainerBase:
                 self.work_dir.rmdir()
             self.work_dir.mkdir(parents=True)
 
-            self.writer = SummaryWriter(self.work_dir / 'summary')
             self.cpt_dir = self.work_dir / 'cpts'
             self.cpt_dir.mkdir(parents=True)
 

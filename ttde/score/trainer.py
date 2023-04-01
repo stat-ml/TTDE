@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Optional, Any
 
 import jax
-from flax import struct, optim
+import wandb
+from flax import struct
 from flax.training import checkpoints
 from tqdm.auto import trange
 from jax import jit, numpy as jnp
@@ -27,7 +28,7 @@ class Trainer(TrainerBase):
     def __init__(
         self,
         model,
-        optim_state: optim.Optimizer,
+        optim_state,
         loss_fn,
         post_processing,
         data_train: TensorDatasetX,
@@ -72,7 +73,7 @@ class Trainer(TrainerBase):
         )
 
     @partial(jit, static_argnums=(0,))
-    def train_step(self, optim_state: optim.Optimizer, xs: jnp.ndarray, key=None):
+    def train_step(self, optim_state, xs: jnp.ndarray, key=None):
         params = optim_state.target
         stats = self.statistics(params, xs)
 
@@ -86,12 +87,17 @@ class Trainer(TrainerBase):
         return optim_state, stats
 
     def log_statistics(self, stats: Stats, tag: str, step: int):
-        self.writer.add_scalar(f'{tag}/custom_loss', stats.loss.item(), step)
-        self.writer.add_scalar(f'{tag}/loglikelihood', stats.ll.item(), step)
-        self.writer.add_scalar(f'{tag}/median_ll', stats.ll_median.item(), step)
-        self.writer.add_scalar(f'{tag}/tt_log_sqr_norm', stats.tt_log_sqr_norm.item(), step)
-        self.writer.add_scalar(f'{tag}/log_int_p', stats.log_int_p.item(), step)
-        self.writer.add_scalar(f'{tag}/nonpositive', stats.nonpositive.item(), step)
+        wandb.log(
+            {
+                f'{tag}/custom_loss': stats.loss.item(),
+                f'{tag}/loglikelihood': stats.ll.item(),
+                f'{tag}/median_ll': stats.ll_median.item(),
+                f'{tag}/tt_log_sqr_norm': stats.tt_log_sqr_norm.item(),
+                f'{tag}/log_int_p': stats.log_int_p.item(),
+                f'{tag}/nonpositive': stats.nonpositive.item(),
+            },
+            step=step,
+        )
 
     def save_checkpoint(self, step: int):
         save_checkpoint(self.cpt_dir, self.optim_state, step)
@@ -100,32 +106,36 @@ class Trainer(TrainerBase):
         return load_checkpoint(path, self.optim_state, step=step)
 
     def fit(self, key: jnp.ndarray, n_steps: int):
-        data_iterator = self.data_train.train_iterator(key, self.batch_sz)
-        save_stopwatch = Stopwatch()
-        val_stopwatch = Stopwatch()
+        with wandb.init(
+            project='ttde',
+            dir=self.work_dir,
+        ):
+            data_iterator = self.data_train.train_iterator(key, self.batch_sz)
+            save_stopwatch = Stopwatch()
+            val_stopwatch = Stopwatch()
 
-        key = KEY(19)
+            key = KEY(19)
 
-        with trange(n_steps) as progress:
-            for step in progress:
-                key, key_curr = jax.random.split(key, 2)
-                self.optim_state, stats = self.train_step(self.optim_state, next(data_iterator), key_curr)
-                if self.work_dir is not None:
-                    self.log_statistics(stats, 'train', step)
+            with trange(n_steps) as progress:
+                for step in progress:
+                    key, key_curr = jax.random.split(key, 2)
+                    self.optim_state, stats = self.train_step(self.optim_state, next(data_iterator), key_curr)
+                    if self.work_dir is not None:
+                        self.log_statistics(stats, 'train', step)
 
-                if self.data_val is not None and val_stopwatch.passed(.5 * 60):
-                    self.log_statistics(
-                        self.statistics(self.optim_state.target, self.data_val.X), 'val', step
-                    )
-                    val_stopwatch.restart()
+                    if self.data_val is not None and val_stopwatch.passed(.5 * 60):
+                        self.log_statistics(
+                            self.statistics(self.optim_state.target, self.data_val.X), 'val', step
+                        )
+                        val_stopwatch.restart()
 
-                progress.set_description(f'{stats.loss:.4f}')
+                    progress.set_description(f'{stats.loss:.4f}')
 
-                if save_stopwatch.passed(15 * 60):
-                    self.save_checkpoint(step)
-                    save_stopwatch.restart()
+                    if save_stopwatch.passed(15 * 60):
+                        self.save_checkpoint(step)
+                        save_stopwatch.restart()
 
-        self.save_checkpoint(step + 1)
+            self.save_checkpoint(step + 1)
 
 
 def save_checkpoint(cpt_dir: Path, state: Any, step: int):

@@ -1,4 +1,5 @@
 import click
+import optax
 
 from ttde.all_imports import *
 from ttde.score.all_imports import *
@@ -59,7 +60,7 @@ def main(
     model = MODEL.create(KEY_0, data_train.X)
     init_params = INIT(model, KEY_0, data_train.X)
 
-    optimizer = riemannian_optimizer.FlaxWrapper.create(flax.optim.Adam(learning_rate=TRAINER.lr), target=init_params)
+    optimizer = riemannian_optimizer.FlaxWrapper.create(optax.adam(learning_rate=TRAINER.lr), target=init_params)
 
     trainer = Trainer(
         model=model,
